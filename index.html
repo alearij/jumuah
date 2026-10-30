@@ -416,13 +416,10 @@ details.adab[open] summary::after{content:"−"}
       </button>
       <svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="92" fill="none" stroke="#3A342D" stroke-width="6"/><circle id="bigArc" cx="100" cy="100" r="92" fill="none" stroke="#C8B08A" stroke-width="6" stroke-linecap="round" pathLength="100" stroke-dasharray="0 100" transform="rotate(-90 100 100)"/></svg>
     </div>
+    <div style="text-align:center"><button class="btn" id="sReset" type="button" style="flex:none;padding:8px 22px">تصفير</button></div>
     <div>
       <div class="sec-h"><h2>وِردك لهذه الجمعة</h2></div>
       <div class="goal" id="goal" role="tablist"></div>
-    </div>
-    <div class="stats">
-      <div><small>هذه الجمعة</small><b class="num" id="stWeek">٠</b></div>
-      <div><small>مجموعك الكلي</small><b class="num" id="stAll">٠</b></div>
     </div>
     <div class="form"><small>الصيغة المختصرة</small><p>اللهم صلِّ وسلِّم على نبينا محمد</p></div>
     <div class="form"><small>الصلاة الإبراهيمية — أكمل الصيغ · البخاري (٣٣٧٠)، مسلم (٤٠٦)</small><p>اللهم صلِّ على محمد وعلى آل محمد، كما صليت على إبراهيم وعلى آل إبراهيم، إنك حميد مجيد، اللهم بارك على محمد وعلى آل محمد، كما باركت على إبراهيم وعلى آل إبراهيم، إنك حميد مجيد</p></div>
@@ -434,7 +431,6 @@ details.adab[open] summary::after{content:"−"}
         <p class="hadith">«البخيل الذي مَن ذُكرتُ عنده فلم يصلِّ عليّ»<cite>الترمذي (٣٥٤٦)، صححه الألباني</cite></p>
       </div>
     </div>
-    <div style="text-align:center"><button class="linkbtn" id="sReset" type="button">تصفير عداد هذه الجمعة</button></div>
     <p class="foot">العداد محفوظ في جهازك أنت فقط.</p>
   </div>
 </div>
@@ -490,7 +486,7 @@ var CITIES=[
  ["جدة",21.4858,39.1925],["الدمام",26.4207,50.0888],["الأحساء",25.3833,49.5867],
  ["بريدة",26.3260,43.9750],["حائل",27.5114,41.7208],["تبوك",28.3835,36.5662],
  ["الطائف",21.2703,40.4158],["أبها",18.2164,42.5053],["جازان",16.8892,42.5511],
- ["نجران",17.4924,44.1277],["الجوف (سكاكا)",29.9697,40.2064],["عرعر",30.9753,41.0381],["الباحة",20.0129,41.4677]
+ ["نجران",17.4924,44.1277],["الجوف (سكاكا)",29.9697,40.2064],["عرعر",30.9753,41.0381],["الباحة",20.0129,41.4677],["الخرج",24.1556,47.3120]
 ];
 var TZ=3;
 var sel=$("citySel");
@@ -606,15 +602,15 @@ var GOALS=[100,300,500,1000];
 function goal(){var g=sGet("jm_goal");return GOALS.indexOf(g)>=0?g:100;}
 function fmt(n){return ar(n.toLocaleString("en-US"));}
 function sRender(){
-  var w=sGet("jm_s_"+curWeek),all=sGet("jm_s_all"),g=goal(),pct=Math.min(100,w/g*100).toFixed(2)+" 100";
+  var w=sGet("jm_s_"+curWeek),g=goal(),pct=Math.min(100,w/g*100).toFixed(2)+" 100";
   $("sCount").textContent=fmt(w);$("sGoalTxt").textContent=fmt(g);$("miniArc").setAttribute("stroke-dasharray",pct);$("miniArc").style.opacity=w?1:0;$("bigArc").style.opacity=w?1:0;
   $("bigN").textContent=fmt(w);$("bigG").textContent=w>=g?"أتممت وردك، زدْ من الخير":"من "+fmt(g);$("bigArc").setAttribute("stroke-dasharray",pct);
-  $("stWeek").textContent=fmt(w);if(typeof snSum==="function")try{snSum();}catch(e){}$("stAll").textContent=fmt(all);
+  if(typeof snSum==="function")try{snSum();}catch(e){}
   var h="";GOALS.forEach(function(x){h+='<button type="button" class="st'+(x===g?" on":"")+'" data-g="'+x+'">'+fmt(x)+'</button>';});$("goal").innerHTML=h;
 }
 function addSalat(el){
   var before=sGet("jm_s_"+curWeek),g=goal();
-  store("jm_s_"+curWeek,String(before+1));store("jm_s_all",String(sGet("jm_s_all")+1));sRender();
+  store("jm_s_"+curWeek,String(before+1));sRender();
   if(el){el.classList.add("pulse");setTimeout(function(){el.classList.remove("pulse");},140);}
   try{if(navigator.vibrate)navigator.vibrate(before+1===g?[30,60,30]:10);}catch(e){}
   if(before+1===g)toast("أتممت وردك "+fmt(g)+" صلاة، صلى الله عليه وسلم");
@@ -622,12 +618,7 @@ function addSalat(el){
 $("sTap").addEventListener("click",function(){addSalat(this);});
 $("bigTap").addEventListener("click",function(){addSalat(null);});
 $("goal").addEventListener("click",function(e){var b=e.target.closest("[data-g]");if(b){store("jm_goal",b.dataset.g);sRender();}});
-var arm=null;
-$("sReset").addEventListener("click",function(){
-  var b=$("sReset");
-  if(!arm){b.textContent="اضغط مرة ثانية للتأكيد";b.classList.add("warn");arm=setTimeout(function(){arm=null;b.textContent="تصفير عداد هذه الجمعة";b.classList.remove("warn");},3000);return;}
-  clearTimeout(arm);arm=null;store("jm_s_"+curWeek,"0");b.textContent="تصفير عداد هذه الجمعة";b.classList.remove("warn");sRender();toast("صُفّر عداد هذه الجمعة");
-});
+$("sReset").addEventListener("click",function(){store("jm_s_"+curWeek,"0");sRender();toast("صُفّر العداد");});
 sRender();
 var lastWeek=curWeek;setInterval(function(){if(curWeek!==lastWeek){lastWeek=curWeek;sRender();if(typeof kTile==="function")kTile();}},5000);
 
